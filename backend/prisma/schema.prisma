@@ -12,3 +12,134 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  USER
+  ADMIN
+  CRITIC
+}
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  username    String    @unique
+  password    String
+  role        Role      @default(USER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  ratings     Rating[]
+  comments    Comment[]
+  profile     Profile?
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  bio         String?
+  avatarUrl   String?
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  
+}
+
+model Movie {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  releaseDate DateTime
+  duration    Int       // in minutes
+  posterUrl   String?
+  trailerUrl  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  genres      GenreOnMovie[]
+  actors      ActorOnMovie[]
+  directors   DirectorOnMovie[]
+  ratings     Rating[]
+  comments    Comment[]
+  
+  // Indexes
+  @@index([title])
+  @@index([releaseDate])
+}
+
+model Genre {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  movies GenreOnMovie[]
+}
+
+model Actor {
+  id          String   @id @default(uuid())
+  name        String
+  bio         String?
+  dateOfBirth DateTime?
+  movies      ActorOnMovie[]
+}
+
+model Director {
+  id          String   @id @default(uuid())
+  name        String
+  bio         String?
+  dateOfBirth DateTime?
+  movies      DirectorOnMovie[]
+}
+
+// Many-to-many relations
+model GenreOnMovie {
+  movieId String
+  genreId Int
+  movie   Movie @relation(fields: [movieId], references: [id])
+  genre   Genre @relation(fields: [genreId], references: [id])
+  
+  @@id([movieId, genreId])
+}
+
+model ActorOnMovie {
+  movieId String
+  actorId String
+  movie   Movie @relation(fields: [movieId], references: [id])
+  actor   Actor @relation(fields: [actorId], references: [id])
+  role    String? // Character name
+  
+  @@id([movieId, actorId])
+}
+
+model DirectorOnMovie {
+  movieId    String
+  directorId String
+  movie      Movie    @relation(fields: [movieId], references: [id])
+  director   Director @relation(fields: [directorId], references: [id])
+  
+  @@id([movieId, directorId])
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  movieId   String
+  userId    String
+  score     Float    @range(0.5, 5.0, 0.5) // Half-point increments (0.5-5)
+  createdAt DateTime @default(now())
+  
+  movie     Movie   @relation(fields: [movieId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  
+  @@unique([movieId, userId]) // Prevent duplicate ratings
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  movieId   String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  movie     Movie   @relation(fields: [movieId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  
+  @@index([movieId])
+}
