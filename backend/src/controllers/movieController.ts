@@ -80,7 +80,6 @@ export const updateMovie = async (req: Request, res: Response) => {
     await prisma.actorOnMovie.deleteMany({ where: { movieId: id } });
     await prisma.directorOnMovie.deleteMany({ where: { movieId: id } });
 
-    // Then, update the movie and recreate relationships
     const movie = await prisma.movie.update({
       where: { id },
       data: {
