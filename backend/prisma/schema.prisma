@@ -121,7 +121,7 @@ model Rating {
   id        String   @id @default(uuid())
   movieId   String
   userId    String
-  score     Float    @range(0.5, 5.0, 0.5) // Half-point increments (0.5-5)
+  score     Float    // Half-point increments (0.5-5)
   createdAt DateTime @default(now())
   
   movie     Movie   @relation(fields: [movieId], references: [id])
