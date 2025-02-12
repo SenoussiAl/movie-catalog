@@ -87,8 +87,6 @@ model Director {
   dateOfBirth DateTime?
   movies      DirectorOnMovie[]
 }
-
-// Many-to-many relations
 model GenreOnMovie {
   movieId String
   genreId Int

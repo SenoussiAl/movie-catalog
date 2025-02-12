@@ -121,3 +121,118 @@ export const deleteMovie = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete movie' });
   }
 };
+
+export const searchMovies = async (req: Request, res: Response) => {
+  try {
+    const {
+      title,
+      genre,
+      minRating,
+      actor,
+      director,
+      year,
+      page = '1',
+      limit = '10',
+    } = req.query;
+
+    const where: any = {};
+
+    if (title) {
+      where.title = {
+        contains: title as string,
+        mode: 'insensitive',
+      };
+    }
+
+    if (genre) {
+      where.genres = {
+        some: {
+          genre: {
+            name: {
+              equals: genre as string,
+              mode: 'insensitive',
+            },
+          },
+        },
+      };
+    }
+
+    if (actor) {
+      where.actors = {
+        some: {
+          actor: {
+            name: {
+              contains: actor as string,
+              mode: 'insensitive',
+            },
+          },
+        },
+      };
+    }
+
+    if (director) {
+      where.directors = {
+        some: {
+          director: {
+            name: {
+              contains: director as string,
+              mode: 'insensitive',
+            },
+          },
+        },
+      };
+    }
+
+    if (year) {
+      where.releaseDate = {
+        gte: new Date(`${year}-01-01`),
+        lte: new Date(`${year}-12-31`),
+      };
+    }
+
+    const query = {
+      where,
+      include: {
+        genres: { include: { genre: true } },
+        actors: { include: { actor: true } },
+        directors: { include: { director: true } },
+        ratings: true,
+      },
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+    };
+
+    const movies = await prisma.movie.findMany(query);
+
+    const processedMovies = movies.map(movie => {
+      const totalRatings = movie.ratings.reduce((sum, rating) => sum + rating.score, 0);
+      const avgRating = movie.ratings.length > 0 
+        ? totalRatings / movie.ratings.length 
+        : 0;
+      
+      return {
+        ...movie,
+        avgRating,
+      };
+    });
+
+    const filteredMovies = minRating 
+      ? processedMovies.filter(movie => movie.avgRating >= Number(minRating))
+      : processedMovies;
+
+    const total = await prisma.movie.count({ where });
+
+    res.json({
+      data: filteredMovies,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to perform search' });
+  }
+};
