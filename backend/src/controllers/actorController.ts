@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../db';
 
-export const getActors = async (req: Request, res: Response) => {
+export const getActors = async (req: Request, res: Response): Promise<void> => {
   try {
     const actors = await prisma.actor.findMany({
       include: {
@@ -18,7 +18,7 @@ export const getActors = async (req: Request, res: Response) => {
   }
 };
 
-export const getActorById = async (req: Request, res: Response) => {
+export const getActorById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
     const actor = await prisma.actor.findUnique({
@@ -33,7 +33,8 @@ export const getActorById = async (req: Request, res: Response) => {
     });
 
     if (!actor) {
-      return res.status(404).json({ error: 'Actor not found' });
+      res.status(404).json({ error: 'Actor not found' });
+      return;
     }
 
     res.json(actor);
