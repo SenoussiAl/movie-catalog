@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../db';
 
-export const getDirectors = async (req: Request, res: Response) => {
+export const getDirectors = async (req: Request, res: Response): Promise<void> => {
   try {
     const directors = await prisma.director.findMany({
       include: {
@@ -18,7 +18,7 @@ export const getDirectors = async (req: Request, res: Response) => {
   }
 };
 
-export const getDirectorById = async (req: Request, res: Response) => {
+export const getDirectorById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
     const director = await prisma.director.findUnique({
@@ -33,7 +33,7 @@ export const getDirectorById = async (req: Request, res: Response) => {
     });
 
     if (!director) {
-      return res.status(404).json({ error: 'Director not found' });
+      res.status(404).json({ error: 'Director not found' });
     }
 
     res.json(director);

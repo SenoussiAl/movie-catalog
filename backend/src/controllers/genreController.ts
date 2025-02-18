@@ -6,7 +6,7 @@ const genreSchema = z.object({
   name: z.string().min(1).max(50),
 });
 
-export const getAllGenres = async (req: Request, res: Response) => {
+export const getAllGenres = async (req: Request, res: Response): Promise<void> => {
   try {
     const genres = await prisma.genre.findMany({
       orderBy: { name: 'asc' }
@@ -17,7 +17,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
   }
 };
 
-export const createGenre = async (req: Request, res: Response) => {
+export const createGenre = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = genreSchema.parse(req.body);
     
@@ -28,10 +28,11 @@ export const createGenre = async (req: Request, res: Response) => {
     res.status(201).json(genre);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      res.status(400).json({ error: error.errors });
+      return;
     }
-    if (error.code === 'P2002') {
-      return res.status(409).json({ error: 'Genre already exists' });
+    if ((error as any).code === 'P2002') {
+      res.status(409).json({ error: 'Genre already exists' });
     }
     res.status(500).json({ error: 'Failed to create genre' });
   }
@@ -49,11 +50,8 @@ export const updateGenre = async (req: Request, res: Response) => {
 
     res.json(genre);
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(409).json({ error: 'Genre already exists' });
-    }
     res.status(500).json({ error: 'Failed to update genre' });
-  }
+    }
 };
 
 export const deleteGenre = async (req: Request, res: Response) => {

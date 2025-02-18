@@ -7,7 +7,7 @@ const commentSchema = z.object({
   movieId: z.string().uuid(),
 });
 
-export const createComment = async (req: Request, res: Response) => {
+export const createComment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { content, movieId } = commentSchema.parse(req.body);
     const userId = req.body.userId;
@@ -24,13 +24,13 @@ export const createComment = async (req: Request, res: Response) => {
     res.status(201).json(comment);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      res.status(400).json({ error: error.errors });
     }
     res.status(500).json({ error: 'Failed to create comment' });
   }
 };
 
-export const updateComment = async (req: Request, res: Response) => {
+export const updateComment = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { content } = req.body;
 
@@ -41,7 +41,7 @@ export const updateComment = async (req: Request, res: Response) => {
       include: { user: true }
     });
     if (comment.userId !== req.body.userId) {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
     }
 
     res.json(comment);

@@ -1,4 +1,3 @@
-// src/routes/movie.routes.ts
 import express from 'express';
 import {
   getMovies,

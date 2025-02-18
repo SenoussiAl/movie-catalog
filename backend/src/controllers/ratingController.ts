@@ -7,7 +7,7 @@ const ratingSchema = z.object({
   movieId: z.string().uuid(),
 });
 
-export const createOrUpdateRating = async (req: Request, res: Response) => {
+export const createOrUpdateRating = async (req: Request, res: Response): Promise<void> => {
   try {
     const { score, movieId } = ratingSchema.parse(req.body);
     const userId = req.body.userId; 
@@ -30,13 +30,13 @@ export const createOrUpdateRating = async (req: Request, res: Response) => {
     res.json(rating);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      res.status(400).json({ error: error.errors });
     }
     res.status(500).json({ error: 'Failed to update rating' });
   }
 };
 
-export const getUserRating = async (req: Request, res: Response) => {
+export const getUserRating = async (req: Request, res: Response): Promise<void> => {
   const { movieId } = req.params;
   const userId = req.body.userId;
 
