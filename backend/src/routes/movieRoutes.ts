@@ -5,17 +5,17 @@ import {
   createMovie,
   updateMovie,
   deleteMovie,
-  searchMovies
+  searchMovies,
 } from '../controllers/movieController';
 
 const router = express.Router();
 
-router.get('/movies', getMovies);
-router.get('/movies/search', searchMovies);
-router.get('/movies/:id', getMovieById);
-router.post('/movies', createMovie);
-router.put('/movies/:id', updateMovie);
-router.delete('/movies/:id', deleteMovie);
+router.get('/', getMovies); 
+router.get('/search', searchMovies);
+router.get('/:id', getMovieById);
+router.post('/', createMovie);
+router.put('/:id', updateMovie);
+router.delete('/:id', deleteMovie);
 
 router.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);

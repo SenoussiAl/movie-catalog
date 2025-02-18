@@ -6,7 +6,7 @@ const genreSchema = z.object({
   name: z.string().min(1).max(50),
 });
 
-export const getAllGenres = async (req: Request, res: Response): Promise<void> => {
+export const getGenres = async (req: Request, res: Response): Promise<void> => {
   try {
     const genres = await prisma.genre.findMany({
       orderBy: { name: 'asc' }
@@ -58,22 +58,41 @@ export const deleteGenre = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
+    const genreId = Number(id);
+
+    // Check if the genre exists
+    const genre = await prisma.genre.findUnique({
+      where: { id: genreId }
+    });
+
+    if (!genre) {
+      res.status(404).json({ error: 'Genre not found' });
+      return; // Use return to exit the function
+    }
+
+    // Check if the genre is assigned to any movies
     const moviesWithGenre = await prisma.genreOnMovie.count({
-      where: { genreId: Number(id) }
+      where: { genreId }
     });
 
     if (moviesWithGenre > 0) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         error: 'Cannot delete genre assigned to movies' 
       });
+      return; // Use return to exit the function
     }
 
+    // Delete the genre
     await prisma.genre.delete({
-      where: { id: Number(id) }
+      where: { id: genreId }
     });
 
-    res.status(204).send();
+    res.status(204).send(); // Send a response without a body
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete genre' });
+    console.error('Error deleting genre:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete genre',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };

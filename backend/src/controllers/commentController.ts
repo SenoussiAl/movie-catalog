@@ -25,6 +25,7 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
+      return;
     }
     res.status(500).json({ error: 'Failed to create comment' });
   }
@@ -40,8 +41,10 @@ export const updateComment = async (req: Request, res: Response): Promise<void> 
       data: { content },
       include: { user: true }
     });
+
     if (comment.userId !== req.body.userId) {
       res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
 
     res.json(comment);
@@ -57,13 +60,17 @@ export const deleteComment = async (req: Request, res: Response) => {
     const comment = await prisma.comment.findUnique({ where: { id } });
     
     if (!comment) {
-      return res.status(404).json({ error: 'Comment not found' });
+      res.status(404).json({ error: 'Comment not found' });
+      return;
     }
-/*
+
+    /*
     if (comment.userId !== req.body.userId && req.body.userRole !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
-*/
+    */
+
     await prisma.comment.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {
